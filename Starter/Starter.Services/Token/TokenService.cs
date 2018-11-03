@@ -15,6 +15,7 @@ using Starter.Services.Crypto;
 using Starter.Services.Providers;
 using Starter.Services.Token.Models;
 using Starter.Services.TwoFactorAuth.Models;
+using Starter.Services.TwoFactorAuth.TOTP;
 
 namespace Starter.Services.Token
 {
@@ -26,6 +27,7 @@ namespace Starter.Services.Token
         private readonly IOptions<JwtOptions> _options;
         private readonly ICacheManager _cacheManager;
         private readonly IAuthenticatedUser _userProvider;
+        private readonly ITotpProvider _totpProvider;
 
         public TokenService(
             IUnitOfWork unitOfWork,
@@ -33,7 +35,8 @@ namespace Starter.Services.Token
             DomainTaskStatus taskStatus,
             IOptions<JwtOptions> options,
             ICacheManager cacheManager,
-            IAuthenticatedUser userProvider)
+            IAuthenticatedUser userProvider,
+            ITotpProvider totpProvider)
         {
             _unitOfWork = unitOfWork;
             _cryptoContext = cryptoContext;
@@ -41,6 +44,7 @@ namespace Starter.Services.Token
             _options = options;
             _cacheManager = cacheManager;
             _userProvider = userProvider;
+            _totpProvider = totpProvider;
         }
 
         public TokenModel GetToken(TwoFactorAuthModel twoFactor)
