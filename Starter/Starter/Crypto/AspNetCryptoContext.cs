@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Options;
+using OtpNet;
 using Starter.Services.Crypto;
 
 namespace Starter.API.Crypto
@@ -69,6 +70,26 @@ namespace Starter.API.Crypto
             byte[] derivedKey = DeriveKey(password, salt);
 
             return storedKey.SequenceEqual(derivedKey);
+        }
+
+        public string GeneratePasswordAsBase32()
+        {
+            char[] chars = new char[62];
+            chars =
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
+            byte[] data = new byte[1];
+            using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
+            {
+                crypto.GetNonZeroBytes(data);
+                data = new byte[64];
+                crypto.GetNonZeroBytes(data);
+            }
+            StringBuilder result = new StringBuilder(64);
+            foreach (byte b in data)
+            {
+                result.Append(chars[b % (chars.Length)]);
+            }
+            return Base32Encoding.ToString(Encoding.ASCII.GetBytes(result.ToString())).TrimEnd('=');
         }
     }
 }

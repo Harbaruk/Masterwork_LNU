@@ -1,5 +1,6 @@
 ﻿using System;
 using Starter.Services.Token.Models;
+using Starter.Services.TwoFactorAuth.Models;
 
 namespace Starter.Services.Token
 {
@@ -8,5 +9,9 @@ namespace Starter.Services.Token
         TokenModel GetToken(LoginCredentials loginCredentials);
 
         TokenModel GetRefreshToken(RefreshTokenModel refreshToken);
+
+        TokenModel GetToken(TwoFactorAuthModel twoFactor);
+
+        TokenModel GetRegistrationToken(string userEmail);
     }
 }

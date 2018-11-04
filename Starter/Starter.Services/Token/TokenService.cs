@@ -91,11 +91,9 @@ namespace Starter.Services.Token
 
         public TokenModel GetToken(LoginCredentials loginCredentials)
         {
-            _cacheManager.SetValue("user", new UserEntity() { Email = "lol" });
-
-            var value = _cacheManager.GetValue<UserEntity>("user");
-
-            var user = _unitOfWork.Repository<UserEntity>().Include(x => x.Tokens).FirstOrDefault(x => x.Email == loginCredentials.Email);
+            var user = _unitOfWork.Repository<UserEntity>()
+                .Include(x => x.Tokens)
+                .FirstOrDefault(x => x.Email == loginCredentials.Email);
 
             if (user == null)
             {
@@ -105,7 +103,7 @@ namespace Starter.Services.Token
 
             if (_cryptoContext.ArePasswordsEqual(loginCredentials.Password, user.Password, user.Salt))
             {
-                return BuildToken(user, TokenType.Access);
+                return BuildToken(user, TokenType.TOTP);
             }
 
             _taskStatus.AddError("password", "Invalid password");
@@ -149,6 +147,21 @@ namespace Starter.Services.Token
                 RefreshToken = refreshToken,
                 Id = user.Id
             };
+        }
+
+        public TokenModel GetRegistrationToken(string userEmail)
+        {
+            var user = _unitOfWork.Repository<UserEntity>()
+                .Include(x => x.Tokens, x => x.TwoFactorAuth)
+                .FirstOrDefault(x => x.Email == userEmail);
+
+            if (user == null)
+            {
+                _taskStatus.AddError("user", "cannot find user");
+                return null;
+            }
+
+            return BuildToken(user, TokenType.TOTP);
         }
     }
 }

@@ -13,5 +13,7 @@
         bool ArePasswordsEqual(string password, string encodedPassword, byte[] salt);
 
         bool ArePasswordsEqual(string password, string encodedPassword, string salt_base64);
+
+        string GeneratePasswordAsBase32();
     }
 }

@@ -25,6 +25,7 @@ using Starter.Services.CacheManager;
 using Starter.Services.Crypto;
 using Starter.Services.Providers;
 using Starter.Services.Token;
+using Starter.Services.TwoFactorAuth.TOTP;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Starter
@@ -50,6 +51,7 @@ namespace Starter
             services.ConfigureFromSection<CryptoOptions>(Configuration);
             services.ConfigureFromSection<JwtOptions>(Configuration);
             services.ConfigureFromSection<RedisOptions>(Configuration);
+            services.ConfigureFromSection<TotpOptions>(Configuration);
 
             services.AddSingleton<ICryptoContext, AspNetCryptoContext>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -67,7 +69,7 @@ namespace Starter
             services.AddScoped(typeof(ErrorHandleAttribute));
 
             services.AddAuthorization(options => options.AddPolicy(AuthPolicies.AuthenticatedUser, AuthenticatedUserPolicy.Policy));
-
+            services.AddAuthorization(options => options.AddPolicy(AuthPolicies.TwoFactorAuth, TwoFactorPolicy.Policy));
             services.AddDbContext<ProjectDbContext>(o =>
             {
                 string connStr = Configuration.GetConnectionString(_hostingEnvironment.EnvironmentName);
