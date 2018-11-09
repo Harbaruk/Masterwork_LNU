@@ -22,7 +22,7 @@ namespace Starter.DAL.Migrations
 
             modelBuilder.Entity("Starter.DAL.Entities.BankAccountEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<decimal>("Balance");
@@ -32,6 +32,8 @@ namespace Starter.DAL.Migrations
                     b.Property<DateTimeOffset>("OpenedAt");
 
                     b.Property<Guid?>("OwnerId");
+
+                    b.Property<string>("Status");
 
                     b.Property<string>("Type");
 
@@ -124,14 +126,14 @@ namespace Starter.DAL.Migrations
 
                     b.Property<string>("Description");
 
-                    b.Property<int?>("FromAccountId");
+                    b.Property<string>("FromAccountId");
 
                     b.Property<Guid?>("InitiatorId");
 
                     b.Property<string>("State")
                         .IsRequired();
 
-                    b.Property<int?>("ToAccountId");
+                    b.Property<string>("ToAccountId");
 
                     b.HasKey("Id");
 

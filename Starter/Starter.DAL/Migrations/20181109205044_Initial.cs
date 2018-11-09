@@ -64,11 +64,12 @@ namespace Starter.DAL.Migrations
                 name: "BankAccounts",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false),
+                    Id = table.Column<string>(nullable: false),
                     Balance = table.Column<decimal>(nullable: false),
                     ExpiresAt = table.Column<DateTimeOffset>(nullable: true),
                     OpenedAt = table.Column<DateTimeOffset>(nullable: false),
                     OwnerId = table.Column<Guid>(nullable: true),
+                    Status = table.Column<string>(nullable: true),
                     Type = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
@@ -178,10 +179,10 @@ namespace Starter.DAL.Migrations
                     BlockHash = table.Column<string>(nullable: true),
                     Date = table.Column<DateTimeOffset>(nullable: false),
                     Description = table.Column<string>(nullable: true),
-                    FromAccountId = table.Column<int>(nullable: true),
+                    FromAccountId = table.Column<string>(nullable: true),
                     InitiatorId = table.Column<Guid>(nullable: true),
                     State = table.Column<string>(nullable: false),
-                    ToAccountId = table.Column<int>(nullable: true)
+                    ToAccountId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {

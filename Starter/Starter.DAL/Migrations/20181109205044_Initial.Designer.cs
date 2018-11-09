@@ -11,7 +11,7 @@ using System;
 namespace Starter.DAL.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    [Migration("20181104130402_Initial")]
+    [Migration("20181109205044_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -23,7 +23,7 @@ namespace Starter.DAL.Migrations
 
             modelBuilder.Entity("Starter.DAL.Entities.BankAccountEntity", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<decimal>("Balance");
@@ -33,6 +33,8 @@ namespace Starter.DAL.Migrations
                     b.Property<DateTimeOffset>("OpenedAt");
 
                     b.Property<Guid?>("OwnerId");
+
+                    b.Property<string>("Status");
 
                     b.Property<string>("Type");
 
@@ -125,14 +127,14 @@ namespace Starter.DAL.Migrations
 
                     b.Property<string>("Description");
 
-                    b.Property<int?>("FromAccountId");
+                    b.Property<string>("FromAccountId");
 
                     b.Property<Guid?>("InitiatorId");
 
                     b.Property<string>("State")
                         .IsRequired();
 
-                    b.Property<int?>("ToAccountId");
+                    b.Property<string>("ToAccountId");
 
                     b.HasKey("Id");
 
