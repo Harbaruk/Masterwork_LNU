@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Starter.API.Policies;
+using Starter.Common.DomainTaskStatus;
 using Starter.Services.BankAccount;
 using Starter.Services.BankAccount.Models;
 
@@ -14,11 +15,11 @@ namespace Starter.API.Controllers
     [Produces("application/json")]
     [Route("api/bank_account")]
     [Authorize(Policy = AuthPolicies.AuthenticatedUser)]
-    public class BankAccountController : Controller
+    public class BankAccountController : AbstractController
     {
         private readonly IBankAccountService _bankAccountService;
 
-        public BankAccountController(IBankAccountService bankAccountService)
+        public BankAccountController(IBankAccountService bankAccountService, DomainTaskStatus taskStatus) : base(taskStatus)
         {
             _bankAccountService = bankAccountService;
         }
