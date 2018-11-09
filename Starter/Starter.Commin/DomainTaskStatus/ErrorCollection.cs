@@ -8,19 +8,17 @@ namespace Starter.Common.DomainTaskStatus
     public sealed class ErrorCollection
     {
         [JsonProperty("errors")]
-        private Dictionary<string, List<string>> _errors { get; set; } = new Dictionary<string, List<string>>();
+        private Dictionary<string, string> _errors { get; set; } = new Dictionary<string, string>();
 
         [JsonIgnore]
         public bool HasErrors => _errors.Any();
 
         public void AddError(string key, string error)
         {
-            if (!_errors.TryGetValue(key, out List<string> errors))
+            if (!_errors.TryGetValue(key, out var existedError))
             {
-                errors = new List<string>();
-                _errors[key] = errors;
+                _errors[key] = error;
             }
-            errors.Add(error);
         }
 
         public override string ToString()
@@ -30,10 +28,7 @@ namespace Starter.Common.DomainTaskStatus
             foreach (var key in _errors.Keys)
             {
                 sb.Append($@" > ""{key}""").AppendLine();
-                foreach (var error in _errors[key])
-                {
-                    sb.Append($@"   > ""{error}""").AppendLine();
-                }
+                sb.Append($@"   > ""{_errors[key]}""").AppendLine();
             }
 
             return sb.ToString();
