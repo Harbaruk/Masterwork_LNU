@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AutoMapper;
 using Starter.Common.DomainTaskStatus;
 using Starter.DAL.Entities;
 using Starter.DAL.Infrastructure;
@@ -16,12 +17,14 @@ namespace Starter.Services.Transactions
         private readonly IUnitOfWork _unitOfWork;
         private readonly DomainTaskStatus _taskStatus;
         private readonly IAuthenticatedUser _authenticatedUser;
+        private readonly IMapper _mapper;
 
-        public TransactionService(IUnitOfWork unitOfWork, DomainTaskStatus taskStatus, IAuthenticatedUser authenticatedUser)
+        public TransactionService(IUnitOfWork unitOfWork, DomainTaskStatus taskStatus, IAuthenticatedUser authenticatedUser, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _taskStatus = taskStatus;
             _authenticatedUser = authenticatedUser;
+            _mapper = mapper;
         }
 
         public TransactionModel CreateTransaction(CreateTransactionModel model)
@@ -34,7 +37,7 @@ namespace Starter.Services.Transactions
                 .Set
                 .FirstOrDefault(x => x.Id == model.ToAccount);
 
-            if (account == null || toAccount == null)
+            if (account == null)
             {
                 _taskStatus.AddUnkeyedError("invalid account id");
                 return null;
@@ -60,18 +63,22 @@ namespace Starter.Services.Transactions
             _unitOfWork.Repository<TransactionEntity>().Insert(transaction);
             _unitOfWork.SaveChanges();
 
-            return new TransactionModel
-            {
-                Balance = transaction.Money,
-                Date = transaction.Date,
-                Id = transaction.Id,
-                Status = Enum.Parse<TransactionStatus>(transaction.State)
-            };
+            return _mapper.Map<TransactionModel>(transaction);
         }
 
         public TransactionDetailedModel GetTransaction(string id)
         {
-            throw new NotImplementedException();
+            var transaction = _unitOfWork.Repository<TransactionEntity>()
+                .Include(x => x.Initiator, x => x.FromAccount, x => x.ToAccount)
+                .FirstOrDefault(x => x.Initiator.Id == _authenticatedUser.Id && x.Id == id);
+
+            if (transaction == null)
+            {
+                _taskStatus.AddUnkeyedError("transaction id is invalid");
+                return null;
+            }
+
+            return _mapper.Map<TransactionDetailedModel>(transaction);
         }
 
         public IEnumerable<TransactionModel> GetTransactions(TransactionStatus? status)
