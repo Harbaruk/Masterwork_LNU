@@ -10,6 +10,8 @@ namespace Starter.DAL.Entities
 
         public string Description { get; set; }
 
+        public decimal Money { get; set; }
+
         public DateTimeOffset Date { get; set; }
 
         public string State { get; set; }

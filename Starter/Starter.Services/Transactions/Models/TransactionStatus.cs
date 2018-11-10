@@ -8,6 +8,7 @@ namespace Starter.Services.Transactions.Models
     {
         Processing,
         Declined,
-        Accepted
+        Accepted,
+        Pending
     }
 }

@@ -21,8 +21,8 @@ namespace Starter.DAL.Configurations
             builder.HasOne(x => x.Initiator)
                 .WithMany(x => x.Transactions);
 
-            builder.HasOne(x => x.FromAccount);
-            builder.HasOne(x => x.ToAccount);
+            builder.HasOne(x => x.FromAccount).WithMany(x => x.SentTransactions);
+            builder.HasOne(x => x.ToAccount).WithMany(x => x.ReceivedTransactions);
 
             builder.HasOne(x => x.Block)
                 .WithMany(x => x.Transactions);

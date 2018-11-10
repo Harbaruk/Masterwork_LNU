@@ -13,5 +13,7 @@ namespace Starter.DAL.Entities
         public UserEntity Owner { get; set; }
         public DateTimeOffset OpenedAt { get; set; }
         public DateTimeOffset? ExpiresAt { get; set; }
+        public IEnumerable<TransactionEntity> SentTransactions { get; set; }
+        public IEnumerable<TransactionEntity> ReceivedTransactions { get; set; }
     }
 }

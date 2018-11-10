@@ -22,6 +22,9 @@ namespace Starter.DAL.Configurations
 
             builder.HasOne(x => x.Owner)
                 .WithMany(x => x.Accounts);
+
+            builder.HasMany(x => x.SentTransactions).WithOne(x => x.FromAccount);
+            builder.HasMany(x => x.ReceivedTransactions).WithOne(x => x.ToAccount);
         }
     }
 }
