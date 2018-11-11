@@ -9,6 +9,7 @@ namespace Starter.Services.BankAccount
     {
         BankAccountModel CreateBankAccount(CreateBankAccountModel account);
         IEnumerable<BankAccountModel> GetAccounts(BankAccountType? accountType, BankAccountStatus? bankAccountStatus);
+        BankAccountDetailedModel GetAccount(string id);
         void CloseAccount(string id, string code);
         BankAccountModel UpdateAccount(string code);
     }

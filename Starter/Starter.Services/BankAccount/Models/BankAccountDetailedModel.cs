@@ -11,5 +11,7 @@ namespace Starter.Services.BankAccount.Models
         public BankAccountType Type { get; set; }
         public decimal Balance { get; set; }
         public IEnumerable<TransactionModel> Transactions { get; set; }
+        public DateTimeOffset OpenedAt { get; set; }
+        public DateTimeOffset? ClosedAt { get; set; }
     }
 }

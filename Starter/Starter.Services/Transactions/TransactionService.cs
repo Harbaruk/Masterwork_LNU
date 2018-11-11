@@ -81,9 +81,15 @@ namespace Starter.Services.Transactions
             return _mapper.Map<TransactionDetailedModel>(transaction);
         }
 
-        public IEnumerable<TransactionModel> GetTransactions(TransactionStatus? status)
+        public IEnumerable<TransactionModel> GetTransactions(string bankAccountId, TransactionStatus? status)
         {
-            throw new NotImplementedException();
+            return _unitOfWork.Repository<TransactionEntity>()
+                .Include(x => x.FromAccount.Owner,
+                         x => x.ToAccount.Owner)
+                .Where(x => (x.FromAccount.Id == bankAccountId && x.FromAccount.Owner.Id == _authenticatedUser.Id)
+                         || (x.ToAccount.Id == bankAccountId && x.ToAccount.Owner.Id == _authenticatedUser.Id))
+                .Where(x => status == null || x.State == status.ToString())
+                .Select(x => _mapper.Map<TransactionModel>(x));
         }
     }
 }

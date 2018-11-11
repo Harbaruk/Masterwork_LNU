@@ -8,7 +8,7 @@ namespace Starter.Services.Transactions
     public interface ITransactionService
     {
         TransactionModel CreateTransaction(CreateTransactionModel model);
-        IEnumerable<TransactionModel> GetTransactions(TransactionStatus? status);
+        IEnumerable<TransactionModel> GetTransactions(string bankAccountId, TransactionStatus? status);
         TransactionDetailedModel GetTransaction(string id);
     }
 }

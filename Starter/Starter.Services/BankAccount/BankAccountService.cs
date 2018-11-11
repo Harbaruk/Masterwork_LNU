@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using Starter.Common.DomainTaskStatus;
 using Starter.DAL.Entities;
 using Starter.DAL.Infrastructure;
 using Starter.Services.BankAccount.Models;
 using Starter.Services.Providers;
+using Starter.Services.Transactions.Models;
 using Starter.Services.TwoFactorAuth.TOTP;
 
 namespace Starter.Services.BankAccount
@@ -17,14 +19,20 @@ namespace Starter.Services.BankAccount
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITotpProvider _totpProvider;
         private readonly IAuthenticatedUser _user;
+        private readonly IMapper _mapper;
         private readonly DomainTaskStatus _taskStatus;
         private const int MinAccountIdLength = 10;
 
-        public BankAccountService(IUnitOfWork unitOfWork, ITotpProvider totpProvider, IAuthenticatedUser user, DomainTaskStatus taskStatus)
+        public BankAccountService(IUnitOfWork unitOfWork,
+            ITotpProvider totpProvider,
+            IAuthenticatedUser user,
+            IMapper mapper,
+            DomainTaskStatus taskStatus)
         {
             _unitOfWork = unitOfWork;
             _totpProvider = totpProvider;
             _user = user;
+            _mapper = mapper;
             _taskStatus = taskStatus;
         }
 
@@ -135,6 +143,33 @@ namespace Starter.Services.BankAccount
             {
                 return nextId.ToString();
             }
+        }
+
+        public BankAccountDetailedModel GetAccount(string id)
+        {
+            var account = _unitOfWork.Repository<BankAccountEntity>()
+                .Include(x => x.Owner, x => x.ReceivedTransactions, x => x.SentTransactions)
+                .FirstOrDefault(x => x.Owner.Id == _user.Id && x.Id == id);
+
+            if (account == null)
+            {
+                _taskStatus.AddUnkeyedError("invalid account code");
+                return null;
+            }
+
+            return new BankAccountDetailedModel
+            {
+                Balance = account.Balance,
+                Transactions = account
+                    .ReceivedTransactions
+                    .Union(account.SentTransactions)
+                    .Select(x => _mapper.Map<TransactionModel>(x))
+                    .OrderBy(x => x.Date),
+                Id = account.Id,
+                Type = Enum.Parse<BankAccountType>(account.Type),
+                ClosedAt = account.ExpiresAt,
+                OpenedAt = account.OpenedAt
+            };
         }
     }
 }

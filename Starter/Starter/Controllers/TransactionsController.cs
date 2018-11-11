@@ -42,9 +42,9 @@ namespace Starter.API.Controllers
         [HttpGet]
         [Route("filter")]
         [ProducesResponseType(typeof(IEnumerable<TransactionModel>), 200)]
-        public IActionResult GetTransactions(TransactionStatus? status)
+        public IActionResult GetTransactions(string id, TransactionStatus? status)
         {
-            return Ok(_transactionService.GetTransactions(status));
+            return Ok(_transactionService.GetTransactions(id, status));
         }
     }
 }
