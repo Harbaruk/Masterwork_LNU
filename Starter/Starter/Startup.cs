@@ -21,6 +21,7 @@ using Starter.API.Providers;
 using Starter.Common.DomainTaskStatus;
 using Starter.CompositionRoot;
 using Starter.DAL;
+using Starter.Services.Blocks;
 using Starter.Services.CacheManager;
 using Starter.Services.Crypto;
 using Starter.Services.Providers;
@@ -52,6 +53,7 @@ namespace Starter
             services.ConfigureFromSection<JwtOptions>(Configuration);
             services.ConfigureFromSection<RedisOptions>(Configuration);
             services.ConfigureFromSection<TotpOptions>(Configuration);
+            services.ConfigureFromSection<BlockSettingsOptions>(Configuration);
 
             services.AddSingleton<ICryptoContext, AspNetCryptoContext>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
