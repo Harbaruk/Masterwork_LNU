@@ -13,5 +13,7 @@ namespace Starter.Services.Token
         TokenModel GetToken(TwoFactorAuthModel twoFactor);
 
         TokenModel GetRegistrationToken(string userEmail);
+
+        TokenModel TrustfullServerToken(TrustfullServerCredentialModel model);
     }
 }

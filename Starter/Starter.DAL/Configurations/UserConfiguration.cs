@@ -30,6 +30,8 @@ namespace Starter.DAL.Configurations
             builder.Property(x => x.Salt)
                 .IsRequired();
 
+            builder.Property(x => x.Role).IsRequired();
+
             builder.HasMany(x => x.Tokens)
                 .WithOne(x => x.User);
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -54,6 +55,7 @@ namespace Starter
             services.ConfigureFromSection<RedisOptions>(Configuration);
             services.ConfigureFromSection<TotpOptions>(Configuration);
             services.ConfigureFromSection<BlockSettingsOptions>(Configuration);
+            services.ConfigureFromSection<TrustfullServersOptions>(Configuration);
 
             services.AddSingleton<ICryptoContext, AspNetCryptoContext>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -72,6 +74,7 @@ namespace Starter
 
             services.AddAuthorization(options => options.AddPolicy(AuthPolicies.AuthenticatedUser, AuthenticatedUserPolicy.Policy));
             services.AddAuthorization(options => options.AddPolicy(AuthPolicies.TwoFactorAuth, TwoFactorPolicy.Policy));
+            services.AddAuthorization(options => options.AddPolicy(AuthPolicies.TrustfullServer, TrustfullServerPolicy.Policy));
             services.AddDbContext<ProjectDbContext>(o =>
             {
                 string connStr = Configuration.GetConnectionString(_hostingEnvironment.EnvironmentName);

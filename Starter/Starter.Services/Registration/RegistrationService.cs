@@ -7,6 +7,7 @@ using Starter.Common.DomainTaskStatus;
 using Starter.DAL.Entities;
 using Starter.DAL.Infrastructure;
 using Starter.Services.Crypto;
+using Starter.Services.Enums;
 using Starter.Services.QRCodes;
 using Starter.Services.Registration.Models;
 using Starter.Services.Token;
@@ -52,6 +53,7 @@ namespace Starter.Services.Registration
                 Salt = salt,
                 Password = Convert.ToBase64String(_cryptoContext.DeriveKey(user.Password, salt)),
                 IsVerified = false,
+                Role = UserRoles.User.ToString(),
                 TwoFactorAuth = new TwoFactorAuthEntity
                 {
                     CreatedAt = DateTimeOffset.Now,

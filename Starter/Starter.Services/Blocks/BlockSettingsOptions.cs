@@ -7,5 +7,6 @@ namespace Starter.Services.Blocks
     public class BlockSettingsOptions
     {
         public int BlockSize { get; set; }
+        public int BlockVerificationAmount { get; set; }
     }
 }

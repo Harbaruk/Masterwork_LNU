@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using Starter.Services.Enums;
 using Starter.Services.Providers;
 
 namespace Starter.API.Providers
@@ -57,6 +58,33 @@ namespace Starter.API.Providers
                 return user?.Identity?.IsAuthenticated ?? false
                     ? user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value
                     : null;
+            }
+        }
+
+        public string ServerHash
+        {
+            get
+            {
+                var user = _httpContext.HttpContext.User;
+                return user?.Identity?.IsAuthenticated ?? false
+                    ? user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.SerialNumber)?.Value
+                    : null;
+            }
+        }
+
+        public UserRoles? Role
+        {
+            get
+            {
+                var user = _httpContext.HttpContext.User;
+                var result = user?.Identity?.IsAuthenticated ?? false ?
+                   user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role)?.Value : null;
+
+                if (result != null)
+                {
+                    return Enum.Parse<UserRoles>(result);
+                }
+                return null;
             }
         }
     }

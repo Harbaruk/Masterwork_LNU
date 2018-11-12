@@ -12,6 +12,7 @@ using Starter.DAL.Entities;
 using Starter.DAL.Infrastructure;
 using Starter.Services.CacheManager;
 using Starter.Services.Crypto;
+using Starter.Services.Enums;
 using Starter.Services.Providers;
 using Starter.Services.Token.Models;
 using Starter.Services.TwoFactorAuth.Models;
@@ -162,6 +163,48 @@ namespace Starter.Services.Token
             }
 
             return BuildToken(user, TokenType.TOTP);
+        }
+
+        public TokenModel TrustfullServerToken(TrustfullServerCredentialModel model)
+        {
+            var server = _unitOfWork.Repository<TrustfullServerEntity>()
+                .Set
+                .FirstOrDefault(x => x.Hash == model.Hash);
+
+            if (_cryptoContext.ArePasswordsEqual(model.Password, server?.Password, server?.Salt))
+            {
+                return BuildServerToken(model);
+            }
+            _taskStatus.AddUnkeyedError("Security error");
+            return null;
+        }
+
+        private TokenModel BuildServerToken(TrustfullServerCredentialModel model)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Value.Key));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new Claim[]{
+                new Claim(JwtRegisteredClaimNames.Sub, model.Hash),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.Now.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
+                new Claim(ClaimTypes.Role, UserRoles.Server.ToString()),
+                new Claim(ClaimTypes.SerialNumber, model.Hash)
+                };
+
+            // TODO Change expiration date
+            var token = new JwtSecurityToken(
+              issuer: _options.Value.ValidIssuer,
+              audience: _options.Value.ValidAudience,
+              claims: claims,
+              expires: DateTime.Now.AddMonths(1),
+              signingCredentials: creds);
+
+            return new TokenModel
+            {
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                ExpiresAt = DateTimeOffset.Now.AddMonths(1),
+                IssueAt = DateTimeOffset.Now
+            };
         }
     }
 }

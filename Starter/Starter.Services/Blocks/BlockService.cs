@@ -7,7 +7,9 @@ using Starter.Common.DomainTaskStatus;
 using Starter.DAL.Entities;
 using Starter.DAL.Infrastructure;
 using Starter.Services.Blocks.Models;
+using Starter.Services.Enums;
 using Starter.Services.Providers;
+using Starter.Services.Transactions.Models;
 
 namespace Starter.Services.Blocks
 {
@@ -83,12 +85,49 @@ namespace Starter.Services.Blocks
 
         public IEnumerable<BlockModel> GetBlocks(int take, int skip)
         {
-            throw new NotImplementedException();
+            return _unitOfWork.Repository<BlockEntity>()
+                .Include(x => x.Miner)
+                .Select(x => new BlockModel
+                {
+                    Date = x.Date,
+                    Id = x.Hash,
+                    Miner = x.Miner.Id.ToString()
+                })
+                .Skip(skip)
+                .Take(take);
         }
 
         public void VerifyBlock(string blockId)
         {
-            throw new NotImplementedException();
+            if (_authenticatedUser.Role != UserRoles.Server)
+            {
+                _taskStatus.AddUnkeyedError("not allowed");
+                return;
+            }
+
+            var block = _unitOfWork.Repository<BlockEntity>().Include(x => x.Verifications, x => x.Transactions).FirstOrDefault(x => x.Hash == blockId);
+            var isAlreadyVerify = block.Verifications.Any(x => x.UserPublicKey == _authenticatedUser.ServerHash);
+
+            if (!isAlreadyVerify)
+            {
+                var verification = new BlockVerificationEntity
+                {
+                    Block = block,
+                    UserPublicKey = _authenticatedUser.ServerHash
+                };
+
+                _unitOfWork.Repository<BlockVerificationEntity>().Insert(verification);
+                _unitOfWork.SaveChanges();
+
+                if (block.Verifications.Count >= _options.Value.BlockVerificationAmount)
+                {
+                    block.BlockState = BlockStatus.Accepted.ToString();
+                    foreach (var tx in block.Transactions)
+                    {
+                        tx.State = TransactionStatus.Accepted.ToString();
+                    }
+                }
+            }
         }
     }
 }

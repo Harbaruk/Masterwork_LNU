@@ -1,4 +1,5 @@
 ﻿using System;
+using Starter.Services.Enums;
 
 namespace Starter.Services.Providers
 {
@@ -7,6 +8,8 @@ namespace Starter.Services.Providers
         bool IsAuthenticated { get; }
         string Fullname { get; }
         Guid Id { get; }
+        string ServerHash { get; }
         string Email { get; }
+        UserRoles? Role { get; }
     }
 }
