@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using AutoMapper;
 using FluentValidation.AspNetCore;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Converters;
 using Starter.API.Attributes;
@@ -108,6 +110,8 @@ namespace Starter
                o.RegisterValidatorsFromAssemblyContaining<Startup>();
            });
 
+            services.AddLogging();
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
@@ -132,6 +136,12 @@ namespace Starter
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
                 c.IncludeXmlComments(xmlPath);
+            });
+
+            services.AddHangfire(x =>
+            {
+                x.UseDefaultActivator();
+                x.UseSqlServerStorage(Configuration.GetConnectionString(_hostingEnvironment.EnvironmentName));
             });
         }
 
@@ -158,6 +168,14 @@ namespace Starter
             });
 
             app.UseMvc();
+
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = new[] { new HandfireAuthorizationAttribute() }
+            });
+
+            //todo: remove test
+            RecurringJob.AddOrUpdate(() => Console.WriteLine("hello"), Cron.Minutely);
         }
     }
 }

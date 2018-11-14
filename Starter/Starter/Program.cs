@@ -21,6 +21,7 @@ namespace Starter
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
                 .UseSetting("detailedErrors", "true")
+                .ConfigureLogging(x => x.AddConsole())
                 .Build();
     }
 }

@@ -10,5 +10,7 @@ namespace Starter.Services.Transactions
         TransactionModel CreateTransaction(CreateTransactionModel model);
         IEnumerable<TransactionModel> GetTransactions(string bankAccountId, TransactionStatus? status);
         TransactionDetailedModel GetTransaction(string id);
+        int CountUnverifiedTransactions();
+        IEnumerable<TransactionDetailedModel> GetUnverifiedTransactions(int number);
     }
 }
