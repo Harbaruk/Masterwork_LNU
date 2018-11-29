@@ -46,5 +46,21 @@ namespace Starter.API.Controllers
         {
             return Ok(_transactionService.GetTransactions(id, status));
         }
+
+        [HttpGet]
+        [Route("unverified")]
+        [ProducesResponseType(typeof(IEnumerable<TransactionDetailedModel>), 200)]
+        public IActionResult GetUnverified()
+        {
+            return Ok(_transactionService.GetUnverifiedTransactions());
+        }
+
+        [HttpGet]
+        [Route("unverified_count")]
+        [ProducesResponseType(typeof(int), 200)]
+        public IActionResult GetUnverifiedTransactionsCount()
+        {
+            return Ok(_transactionService.CountUnverifiedTransactions());
+        }
     }
 }

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using AutoMapper;
 using FluentValidation.AspNetCore;
-using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -13,10 +11,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Converters;
 using Starter.API.Attributes;
+using Starter.API.BackgroundJobs;
 using Starter.API.Crypto;
 using Starter.API.Extensions;
 using Starter.API.Policies;
@@ -27,6 +25,7 @@ using Starter.DAL;
 using Starter.Services.Blocks;
 using Starter.Services.CacheManager;
 using Starter.Services.Crypto;
+using Starter.Services.Mining;
 using Starter.Services.Providers;
 using Starter.Services.Token;
 using Starter.Services.TwoFactorAuth.TOTP;
@@ -67,7 +66,7 @@ namespace Starter
             services.AddDistributedRedisCache(option =>
             {
                 option.Configuration = Configuration.GetSection("Redis")["ConnectionString"];
-                option.InstanceName = "master";
+                option.InstanceName = "masterworklnu";
             });
 
             services.AddScoped(typeof(DomainTaskStatus));
@@ -137,12 +136,6 @@ namespace Starter
 
                 c.IncludeXmlComments(xmlPath);
             });
-
-            services.AddHangfire(x =>
-            {
-                x.UseDefaultActivator();
-                x.UseSqlServerStorage(Configuration.GetConnectionString(_hostingEnvironment.EnvironmentName));
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -160,7 +153,6 @@ namespace Starter
             app.UseSwagger();
 
             app.UseStaticFiles();
-
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Starter V1");
@@ -169,13 +161,17 @@ namespace Starter
 
             app.UseMvc();
 
-            app.UseHangfireDashboard("/hangfire", new DashboardOptions
-            {
-                Authorization = new[] { new HandfireAuthorizationAttribute() }
-            });
+            //var container = new BackgroundJobContainer();
+            //var job = new BackgroundJob();
+            //var scope = app.ApplicationServices.CreateScope();
 
-            //todo: remove test
-            RecurringJob.AddOrUpdate(() => Console.WriteLine("hello"), Cron.Minutely);
+            //var miningService = scope.ServiceProvider.GetService<IMiningService>();
+            //job.AddAction(() =>
+            //{
+            //    miningService.Run();
+            //});
+            //container.Add(job);
+            //container.Run();
         }
     }
 }

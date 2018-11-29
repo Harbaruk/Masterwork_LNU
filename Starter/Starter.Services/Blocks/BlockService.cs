@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AutoMapper;
 using Microsoft.Extensions.Options;
 using Starter.Common.DomainTaskStatus;
 using Starter.DAL.Entities;
@@ -19,15 +20,20 @@ namespace Starter.Services.Blocks
         private readonly IAuthenticatedUser _authenticatedUser;
         private readonly IOptions<BlockSettingsOptions> _options;
         private readonly DomainTaskStatus _taskStatus;
+        private readonly IMapper _mapper;
 
         public BlockService(
             IUnitOfWork unitOfWork,
-            IAuthenticatedUser authenticatedUser, IOptions<BlockSettingsOptions> options, DomainTaskStatus taskStatus)
+            IAuthenticatedUser authenticatedUser,
+            IOptions<BlockSettingsOptions> options,
+            DomainTaskStatus taskStatus,
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _authenticatedUser = authenticatedUser;
             _options = options;
             _taskStatus = taskStatus;
+            _mapper = mapper;
         }
 
         public BlockModel CreateBlock(CreateBlockModel model)
@@ -95,6 +101,20 @@ namespace Starter.Services.Blocks
                 })
                 .Skip(skip)
                 .Take(take);
+        }
+
+        public BlockModel GetLastBlock()
+        {
+            return _mapper.Map<BlockModel>(_unitOfWork.Repository<BlockEntity>().Set.Where(x => x.BlockState == BlockStatus.Accepted.ToString())
+                .OrderByDescending(x => x.Date)
+                .FirstOrDefault());
+        }
+
+        public BlockModel GetUnverifiedBlock()
+        {
+            return _mapper.Map<BlockModel>(_unitOfWork.Repository<BlockEntity>()
+                .Set
+                .FirstOrDefault(x => x.BlockState == BlockStatus.Pending.ToString()));
         }
 
         public void VerifyBlock(string blockId)

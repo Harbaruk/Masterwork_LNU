@@ -14,5 +14,6 @@ namespace Starter.Services.Transactions.Models
         public DateTimeOffset? ProcessedTime { get; set; }
         public decimal Money { get; set; }
         public TransactionStatus Status { get; set; }
+        public string BlockId { get; set; }
     }
 }

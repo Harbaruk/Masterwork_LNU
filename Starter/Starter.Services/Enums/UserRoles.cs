@@ -7,6 +7,7 @@ namespace Starter.Services.Enums
     public enum UserRoles
     {
         User,
-        Server
+        Server,
+        Test
     }
 }

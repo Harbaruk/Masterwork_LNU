@@ -61,6 +61,7 @@ namespace Starter.Services.Transactions
 
             var transaction = new TransactionEntity
             {
+                Id = Guid.NewGuid().ToString(),
                 Date = DateTimeOffset.Now,
                 FromAccount = account,
                 ToAccount = toAccount,
@@ -79,7 +80,7 @@ namespace Starter.Services.Transactions
         public TransactionDetailedModel GetTransaction(string id)
         {
             var transaction = _unitOfWork.Repository<TransactionEntity>()
-                .Include(x => x.Initiator, x => x.FromAccount, x => x.ToAccount)
+                .Include(x => x.Initiator, x => x.FromAccount, x => x.ToAccount, x => x.Block)
                 .FirstOrDefault(x => x.Initiator.Id == _authenticatedUser.Id && x.Id == id);
 
             if (transaction == null)
@@ -105,7 +106,7 @@ namespace Starter.Services.Transactions
         public IEnumerable<TransactionDetailedModel> GetUnverifiedTransactions(int number = 0)
         {
             return _unitOfWork.Repository<TransactionEntity>()
-                .Set
+                .Include(x => x.Block)
                 .Where(x => x.State == TransactionStatus.Pending.ToString())
                 .Take(number == 0 ? _blockOptions.Value.BlockSize : number)
                 .Select(x => _mapper.Map<TransactionDetailedModel>(x));

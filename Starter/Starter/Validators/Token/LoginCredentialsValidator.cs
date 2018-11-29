@@ -15,10 +15,6 @@ namespace Starter.API.Validators.Token
                 .Equal("password")
                 .WithMessage("Invalid grant type");
 
-            RuleFor(x => x.Email)
-                .EmailAddress()
-                .WithMessage("Invalid email address");
-
             RuleFor(x => x.Password)
                 .MinimumLength(8)
                 .WithMessage("password is too short");

@@ -22,7 +22,7 @@ namespace Starter.API.Controllers
         [HttpPost]
         [Route("token")]
         [ProducesResponseType(typeof(TokenModel), 200)]
-        public IActionResult AccessToken([FromBody] LoginCredentials loginCredentials)
+        public IActionResult AccessToken([FromBody] LoginCredentials loginCredentials, [FromServices] Services.CacheManager.ICacheManager cacheManager)
         {
             return Ok(_tokenService.GetToken(loginCredentials));
         }

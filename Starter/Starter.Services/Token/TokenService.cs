@@ -94,7 +94,8 @@ namespace Starter.Services.Token
         {
             var user = _unitOfWork.Repository<UserEntity>()
                 .Include(x => x.Tokens)
-                .FirstOrDefault(x => x.Email == loginCredentials.Email);
+                .FirstOrDefault(x => x.Email == loginCredentials.Email
+                || (x.Email == null && x.Role == UserRoles.Server.ToString()));
 
             if (user == null)
             {
@@ -104,6 +105,10 @@ namespace Starter.Services.Token
 
             if (_cryptoContext.ArePasswordsEqual(loginCredentials.Password, user.Password, user.Salt))
             {
+                if (user.Role == UserRoles.Server.ToString() || user.Role == UserRoles.Test.ToString())
+                {
+                    return BuildToken(user, TokenType.Access);
+                }
                 return BuildToken(user, TokenType.TOTP);
             }
 
@@ -117,12 +122,12 @@ namespace Starter.Services.Token
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new Claim[]{
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Sid, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.Now.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
                 new Claim(ClaimTypes.Sid, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                 new Claim(ClaimTypes.Name, user.Firstname + " " + user.Lastname),
                 new Claim(ClaimTypes.AuthenticationMethod,type.ToString())
                 };

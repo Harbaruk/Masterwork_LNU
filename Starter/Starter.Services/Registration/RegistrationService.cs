@@ -77,5 +77,20 @@ namespace Starter.Services.Registration
                 Token = _tokenService.GetRegistrationToken(user.Email)
             };
         }
+
+        public void RegisterServer(ServerRegistrationModel user)
+        {
+            var salt = _cryptoContext.GenerateSaltAsBase64();
+            var newUser = new UserEntity
+            {
+                Email = null,
+                Firstname = null,
+                Lastname = null,
+                Salt = salt,
+                Password = Convert.ToBase64String(_cryptoContext.DeriveKey(user.Password, salt)),
+                IsVerified = true,
+                Role = UserRoles.Server.ToString()
+            };
+        }
     }
 }

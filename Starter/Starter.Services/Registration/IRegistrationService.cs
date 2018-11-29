@@ -8,5 +8,6 @@ namespace Starter.Services.Registration
     public interface IRegistrationService
     {
         FinishRegistrationModel Register(UserRegistrationModel user);
+        void RegisterServer(ServerRegistrationModel user);
     }
 }

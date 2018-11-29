@@ -29,5 +29,13 @@ namespace Starter.API.Controllers
         {
             return Ok(_registrationService.Register(user));
         }
+
+        [HttpPost]
+        [Route("server")]
+        public IActionResult RegisterServer([FromBody] ServerRegistrationModel user)
+        {
+            _registrationService.RegisterServer(user);
+            return Ok();
+        }
     }
 }
