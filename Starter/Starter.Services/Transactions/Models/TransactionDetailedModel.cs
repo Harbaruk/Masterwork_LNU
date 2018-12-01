@@ -7,7 +7,7 @@ namespace Starter.Services.Transactions.Models
     public class TransactionDetailedModel
     {
         public string Id { get; set; }
-        public string Desctiption { get; set; }
+        public string Description { get; set; }
         public string FromAccount { get; set; }
         public string ToAccount { get; set; }
         public DateTimeOffset SentTime { get; set; }

@@ -28,6 +28,10 @@ namespace Starter.Services.TwoFactorAuth.TOTP
 
         public bool Verify(string secret, string code)
         {
+            if (!_options.Value.IsEnabled)
+            {
+                return true;
+            }
             var correctTime = _timeAPI.GetGoogleTime();
             var otp = new Totp(Base32Encoding.ToBytes(secret), mode: OtpHashMode.Sha1, timeCorrection: new TimeCorrection(correctTime));
 

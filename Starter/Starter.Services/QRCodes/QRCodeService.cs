@@ -31,7 +31,7 @@ namespace Starter.Services.QRCodes
 
         private string GenerateQR(string data)
         {
-            QrCodeGenerator qrGenerator = new QRCodeGenerator();
+            var qrGenerator = new QRCodeGenerator();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(data, QRCodeGenerator.ECCLevel.Q);
             Base64QRCode qrCode = new Base64QRCode(qrCodeData);
 

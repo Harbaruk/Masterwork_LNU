@@ -163,8 +163,8 @@ namespace Starter.Services.BankAccount
                 Transactions = account
                     .ReceivedTransactions
                     .Union(account.SentTransactions)
-                    .Select(x => _mapper.Map<TransactionModel>(x))
-                    .OrderBy(x => x.Date),
+                    .Select(x => _mapper.Map<TransactionDetailedModel>(x))
+                    .OrderBy(x => x.SentTime),
                 Id = account.Id,
                 Type = Enum.Parse<BankAccountType>(account.Type),
                 ClosedAt = account.ExpiresAt,

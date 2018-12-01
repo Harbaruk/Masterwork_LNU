@@ -10,7 +10,7 @@ namespace Starter.Services.BankAccount.Models
         public string Id { get; set; }
         public BankAccountType Type { get; set; }
         public decimal Balance { get; set; }
-        public IEnumerable<TransactionModel> Transactions { get; set; }
+        public IEnumerable<TransactionDetailedModel> Transactions { get; set; }
         public DateTimeOffset OpenedAt { get; set; }
         public DateTimeOffset? ClosedAt { get; set; }
     }

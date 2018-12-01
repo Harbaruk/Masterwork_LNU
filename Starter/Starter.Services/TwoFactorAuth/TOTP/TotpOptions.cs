@@ -7,5 +7,6 @@ namespace Starter.Services.TwoFactorAuth.TOTP
     public class TotpOptions
     {
         public string Protocol { get; set; }
+        public bool IsEnabled { get; set; }
     }
 }
