@@ -6,7 +6,7 @@ namespace Starter.Services.Blocks.Models
 {
     public class BlockModel
     {
-        public string Id { get; set; }
+        public string Hash { get; set; }
 
         public string Miner { get; set; }
 

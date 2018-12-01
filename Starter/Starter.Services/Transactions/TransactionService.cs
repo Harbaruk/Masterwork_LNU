@@ -44,12 +44,12 @@ namespace Starter.Services.Transactions
                 .FirstOrDefault(x => x.Owner.Id == _authenticatedUser.Id && x.Id == model.FromAccount);
 
             var toAccount = _unitOfWork.Repository<BankAccountEntity>()
-                .Set
+                .Include(x => x.Owner)
                 .FirstOrDefault(x => x.Id == model.ToAccount);
 
-            if (account == null)
+            if (model.Money < 0)
             {
-                _taskStatus.AddUnkeyedError("invalid account id");
+                _taskStatus.AddUnkeyedError("invalid amount of money");
                 return null;
             }
 

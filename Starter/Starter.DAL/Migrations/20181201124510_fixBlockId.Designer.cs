@@ -11,9 +11,10 @@ using System;
 namespace Starter.DAL.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    partial class ProjectDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181201124510_fixBlockId")]
+    partial class fixBlockId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,6 +58,8 @@ namespace Starter.DAL.Migrations
                     b.Property<string>("Hash")
                         .IsRequired();
 
+                    b.Property<Guid?>("MinerId");
+
                     b.Property<long>("Nonce");
 
                     b.Property<string>("PreviousBlockHash")
@@ -64,7 +67,7 @@ namespace Starter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Hash");
+                    b.HasIndex("MinerId");
 
                     b.ToTable("Blocks");
                 });
@@ -249,9 +252,9 @@ namespace Starter.DAL.Migrations
 
             modelBuilder.Entity("Starter.DAL.Entities.BlockEntity", b =>
                 {
-                    b.HasOne("Starter.DAL.Entities.TrustfullServerEntity", "Miner")
+                    b.HasOne("Starter.DAL.Entities.UserEntity", "Miner")
                         .WithMany()
-                        .HasForeignKey("Hash")
+                        .HasForeignKey("MinerId")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 

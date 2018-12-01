@@ -43,5 +43,13 @@ namespace Starter.API.Controllers
         {
             return Ok(_tokenService.GetToken(authModel));
         }
+
+        [HttpPost]
+        [Route("auth/server")]
+        [ProducesResponseType(typeof(TokenModel), 200)]
+        public IActionResult ServerToken([FromBody] TrustfullServerCredentialModel authModel)
+        {
+            return Ok(_tokenService.TrustfullServerToken(authModel));
+        }
     }
 }

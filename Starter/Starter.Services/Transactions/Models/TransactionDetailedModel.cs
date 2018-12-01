@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Starter.Services.Transactions.Models
 {
+    [Serializable]
     public class TransactionDetailedModel
     {
         public string Id { get; set; }

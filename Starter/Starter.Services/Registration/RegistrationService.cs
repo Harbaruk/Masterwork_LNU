@@ -81,16 +81,15 @@ namespace Starter.Services.Registration
         public void RegisterServer(ServerRegistrationModel user)
         {
             var salt = _cryptoContext.GenerateSaltAsBase64();
-            var newUser = new UserEntity
+            var newUser = new TrustfullServerEntity
             {
-                Email = null,
-                Firstname = null,
-                Lastname = null,
                 Salt = salt,
-                Password = Convert.ToBase64String(_cryptoContext.DeriveKey(user.Password, salt)),
-                IsVerified = true,
-                Role = UserRoles.Server.ToString()
+                Hash = Guid.NewGuid().ToString(),
+                Password = Convert.ToBase64String(_cryptoContext.DeriveKey("serverpassword", salt)),
+                PublicKey = Guid.NewGuid().ToString()
             };
+            _unitOfWork.Repository<TrustfullServerEntity>().Insert(newUser);
+            _unitOfWork.SaveChanges();
         }
     }
 }

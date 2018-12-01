@@ -29,7 +29,9 @@ namespace Starter.Services.Mining
         private readonly IOptions<BlockSettingsOptions> _blockOptions;
         private readonly IMapper _mapper;
         private readonly IServersClient _serversClient;
-        private readonly CancellationToken _miningCancelationToken;
+        private string _serverHash = "8f00234b-dabb-4765-b616-841d5b92a9a0";
+        private CancellationTokenSource _miningCancelationToken;
+        private CancellationTokenSource _checkingToken;
 
         public MiningService(IUnitOfWork unitOfWork,
             ITransactionService transactionService,
@@ -46,7 +48,8 @@ namespace Starter.Services.Mining
             _blockOptions = blockOptions;
             _mapper = mapper;
             _serversClient = serversClient;
-            _miningCancelationToken = new CancellationToken();
+            _miningCancelationToken = new CancellationTokenSource();
+            _checkingToken = new CancellationTokenSource();
         }
 
         public BlockModel GenerateBlock(IEnumerable<TransactionModel> transactions)
@@ -58,22 +61,18 @@ namespace Starter.Services.Mining
         {
             while (true)
             {
-                var task = Task.Factory.StartNew(() =>
+                while (true)
                 {
-                    while (true)
+                    Console.WriteLine("Try get transactions");
+                    var amount = _serversClient.GetUnverifiedTransactionCount();
+                    var localAmount = _unitOfWork.Repository<TransactionEntity>().Set.Count();
+
+                    if (amount + localAmount >= _blockOptions.Value.BlockSize)
                     {
-                        var amount = _serversClient.GetUnverifiedTransactionCount();
-                        var localAmount = _unitOfWork.Repository<TransactionEntity>().Set.Count();
-
-                        if (amount + localAmount >= _blockOptions.Value.BlockSize)
-                        {
-                            break;
-                        }
-                        Thread.Sleep(10000);
+                        break;
                     }
-                });
-
-                Task.WaitAll(task);
+                    Thread.Sleep(10000);
+                }
 
                 var transactions = _serversClient.GetUnverifiedTransactions().ToList();
                 transactions
@@ -83,12 +82,75 @@ namespace Starter.Services.Mining
                         .Select(x => _mapper.Map<TransactionDetailedModel>(x)));
                 transactions = transactions.Take(_blockOptions.Value.BlockSize).ToList();
 
+                Console.WriteLine("Start checking task");
                 var checkingTask = Task.Factory.StartNew(() =>
                 {
-                    _serversClient.GetUnverifiedBlock();
-                    Thread.Sleep(10000);
+                    while (!_miningCancelationToken.IsCancellationRequested)
+                    {
+                        var block = _serversClient.GetUnverifiedBlock();
+                        if (block != null)
+                        {
+                            _miningCancelationToken.Cancel();
+                            return;
+                        }
+                        Thread.Sleep(10000);
+                    }
+                });
+
+                Console.WriteLine("Start mining task");
+                var miningTask = Task.Factory.StartNew(() =>
+                 {
+                     var lastBlock = _blockService.GetLastBlock();
+                     return Mining(transactions, lastBlock?.Hash);
+                 });
+
+                var miningResult = await miningTask;
+                if (miningResult.Hash == null)
+                {
+                    var unverifiedBlock = _blockService.GetUnverifiedBlock();
+                    if (CheckBlock(unverifiedBlock))
+                    {
+                        _blockService.VerifyBlock(unverifiedBlock.Hash);
+                    }
                 }
-                );
+                else
+                {
+                    var block = new CreateBlockModel
+                    {
+                        Transactions = transactions.Select(x => x.Id).ToList(),
+                        Date = DateTimeOffset.Now,
+                        Hash = miningResult.Hash,
+                        Miner = _serverHash,
+                        Nonce = miningResult.Nonce,
+                        PrevBlockHash = _blockService.GetLastBlock()?.Hash ?? "000000000000000"
+                    };
+                    _blockService.CreateBlock(block);
+                }
+                _miningCancelationToken = new CancellationTokenSource();
+            }
+        }
+
+        private bool CheckBlock(UnverifiedBlockModel unverifiedBlock)
+        {
+            var blockTemplate = new BlockTemplateModel
+            {
+                PrevHash = unverifiedBlock.PrevHash,
+                Miner = unverifiedBlock.Miner,
+                Nonce = unverifiedBlock.Nonce,
+                TransactionsMerkleTree = MerkleTree<TransactionDetailedModel>.Compute(unverifiedBlock.Transactions)
+            };
+            using (SHA256Managed sha = new SHA256Managed())
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    ms.Position = 0;
+                    BinaryFormatter bf = new BinaryFormatter();
+                    bf.Serialize(ms, blockTemplate);
+
+                    var blockResultHash = Convert.ToBase64String(sha.ComputeHash(ms.ToArray()));
+                    Console.WriteLine(blockResultHash);
+                    return blockResultHash == unverifiedBlock.Hash;
+                }
             }
         }
 
@@ -96,20 +158,25 @@ namespace Starter.Services.Mining
         {
             var transactionHash = MerkleTree<TransactionDetailedModel>.Compute(transactions);
             string blockResultHash;
+
             var blockTemplate = new BlockTemplateModel
             {
                 PrevHash = prevHash,
-                Miner = "Miner",
+                Miner = _serverHash,
                 Nonce = 0,
                 TransactionsMerkleTree = transactionHash
             };
-
+            var analyticsTask = Task.Factory.StartNew(() => { while (!_miningCancelationToken.IsCancellationRequested) { Console.WriteLine(blockTemplate.Nonce); Thread.Sleep(10000); } });
             using (SHA256Managed sha = new SHA256Managed())
             {
                 using (MemoryStream ms = new MemoryStream())
                 {
                     do
                     {
+                        if (_miningCancelationToken.IsCancellationRequested)
+                        {
+                            return (0, null);
+                        }
                         blockTemplate.Nonce++;
                         ms.Position = 0;
                         BinaryFormatter bf = new BinaryFormatter();
@@ -118,7 +185,8 @@ namespace Starter.Services.Mining
                         blockResultHash = Convert.ToBase64String(sha.ComputeHash(ms.ToArray()));
                         Console.WriteLine(blockResultHash);
                     }
-                    while (!blockResultHash.Substring(0, 5).All(x => x == '0'));
+                    while (!blockResultHash.Substring(0, 3).All(x => x == '0'));
+                    _miningCancelationToken.Cancel();
                     return (blockTemplate.Nonce, blockResultHash);
                 }
             }

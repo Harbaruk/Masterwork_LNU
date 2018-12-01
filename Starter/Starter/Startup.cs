@@ -161,17 +161,17 @@ namespace Starter
 
             app.UseMvc();
 
-            //var container = new BackgroundJobContainer();
-            //var job = new BackgroundJob();
-            //var scope = app.ApplicationServices.CreateScope();
+            var container = new BackgroundJobContainer();
+            var job = new BackgroundJob();
+            var scope = app.ApplicationServices.CreateScope();
 
-            //var miningService = scope.ServiceProvider.GetService<IMiningService>();
-            //job.AddAction(() =>
-            //{
-            //    miningService.Run();
-            //});
-            //container.Add(job);
-            //container.Run();
+            var miningService = scope.ServiceProvider.GetService<IMiningService>();
+            job.AddAction(() =>
+            {
+                miningService.Run();
+            });
+            container.Add(job);
+            container.Run();
         }
     }
 }

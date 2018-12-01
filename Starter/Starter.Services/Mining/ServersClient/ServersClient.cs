@@ -17,6 +17,7 @@ namespace Starter.Services.Mining.ServersClient
         private readonly TrustfullServersOptions _serversOptions;
         private readonly ITokenService _tokenService;
         private readonly HttpClient _httpClient;
+        private string _serverHash = "8f00234b-dabb-4765-b616-841d5b92a9a0";
 
         public ServersClient(IOptions<TrustfullServersOptions> serversOptions, ITokenService tokenService)
         {
@@ -42,8 +43,7 @@ namespace Starter.Services.Mining.ServersClient
 
         private string GetToken()
         {
-            Console.WriteLine("Ask for token");
-            return _tokenService.GetToken(new Token.Models.LoginCredentials { GrantType = "password", Password = "serverpassword" })?.AccessToken;
+            return _tokenService.TrustfullServerToken(new Token.Models.TrustfullServerCredentialModel { Hash = _serverHash, Password = "serverpassword" })?.AccessToken;
         }
 
         public int GetUnverifiedTransactionCount()
@@ -53,7 +53,7 @@ namespace Starter.Services.Mining.ServersClient
             var count = 0;
             foreach (var server in _serversOptions.IPAdressess)
             {
-                var result = _httpClient.GetAsync($"{server}/transactions/unverified").Result;
+                var result = _httpClient.GetAsync($"{server}/transactions/unverified_count").Result;
                 if (result.StatusCode != System.Net.HttpStatusCode.OK)
                 {
                     return 0;
@@ -96,7 +96,7 @@ namespace Starter.Services.Mining.ServersClient
                 var block = JsonConvert.DeserializeObject<BlockModel>(_httpClient.GetAsync($"{server}/block/last_verified").Result.Content.ReadAsStringAsync().Result);
                 if (block != null)
                 {
-                    return block.Id;
+                    return block.Hash;
                 }
             }
             return null;

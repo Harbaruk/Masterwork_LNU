@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Starter.Services.Mining
 {
+    [Serializable]
     public class BlockTemplateModel
     {
         public string PrevHash { get; set; }

@@ -42,13 +42,13 @@ namespace Starter.Services.Blocks
 
             var prevBlock = blocRepo.Set.FirstOrDefault(x => x.Hash == model.PrevBlockHash);
 
-            if (prevBlock == null)
+            if (prevBlock == null && blocRepo.Set.Count() != 0)
             {
                 _taskStatus.AddUnkeyedError("invalid prev block hash");
                 return null;
             }
-            var miner = _unitOfWork.Repository<UserEntity>().Set
-                .FirstOrDefault(x => x.Id.ToString() == model.Miner && _authenticatedUser.Id.ToString() == model.Miner);
+            var miner = _unitOfWork.Repository<TrustfullServerEntity>().Set
+                .FirstOrDefault(x => x.Hash.ToString() == model.Miner);
 
             if (miner == null)
             {
@@ -74,7 +74,7 @@ namespace Starter.Services.Blocks
                 Hash = model.Hash,
                 Miner = miner,
                 Nonce = model.Nonce,
-                PreviousBlockHash = prevBlock.Hash,
+                PreviousBlockHash = model.PrevBlockHash,
                 Transactions = transactions.ToList(),
             };
 
@@ -83,9 +83,9 @@ namespace Starter.Services.Blocks
 
             return new BlockModel
             {
-                Id = blockEntity.Hash,
+                Hash = blockEntity.Hash,
                 Date = blockEntity.Date,
-                Miner = miner.Id.ToString()
+                Miner = miner.PublicKey.ToString()
             };
         }
 
@@ -96,8 +96,8 @@ namespace Starter.Services.Blocks
                 .Select(x => new BlockModel
                 {
                     Date = x.Date,
-                    Id = x.Hash,
-                    Miner = x.Miner.Id.ToString()
+                    Hash = x.Hash,
+                    Miner = x.Miner.PublicKey.ToString()
                 })
                 .Skip(skip)
                 .Take(take);
@@ -105,16 +105,36 @@ namespace Starter.Services.Blocks
 
         public BlockModel GetLastBlock()
         {
-            return _mapper.Map<BlockModel>(_unitOfWork.Repository<BlockEntity>().Set.Where(x => x.BlockState == BlockStatus.Accepted.ToString())
-                .OrderByDescending(x => x.Date)
-                .FirstOrDefault());
+            var locker = new Object();
+            lock (locker)
+            {
+                return _mapper.Map<BlockModel>(_unitOfWork.Repository<BlockEntity>().Set.Where(x => x.BlockState == BlockStatus.Accepted.ToString())
+                    .OrderByDescending(x => x.Date)
+                    .FirstOrDefault());
+            }
         }
 
-        public BlockModel GetUnverifiedBlock()
+        public UnverifiedBlockModel GetUnverifiedBlock()
         {
-            return _mapper.Map<BlockModel>(_unitOfWork.Repository<BlockEntity>()
+            return _mapper.Map<UnverifiedBlockModel>(_unitOfWork.Repository<BlockEntity>()
                 .Set
                 .FirstOrDefault(x => x.BlockState == BlockStatus.Pending.ToString()));
+        }
+
+        public void SaveVerifiedBlock(UnverifiedBlockModel model)
+        {
+            var transactions = _unitOfWork.Repository<TransactionEntity>()
+                .Include(x => x.Block)
+                .Where(x => model.Transactions.Select(t => t.Id).Contains(x.Id));
+
+            var block = _unitOfWork.Repository<BlockEntity>().Set.FirstOrDefault(x => x.Id == model.Id);
+            block.Miner = _unitOfWork.Repository<TrustfullServerEntity>().Set.FirstOrDefault(x => x.PublicKey == model.Miner);
+            foreach (var t in transactions)
+            {
+                t.State = TransactionStatus.Accepted.ToString();
+                t.Block = block;
+            }
+            _unitOfWork.SaveChanges();
         }
 
         public void VerifyBlock(string blockId)
@@ -142,10 +162,14 @@ namespace Starter.Services.Blocks
                 if (block.Verifications.Count >= _options.Value.BlockVerificationAmount)
                 {
                     block.BlockState = BlockStatus.Accepted.ToString();
-                    foreach (var tx in block.Transactions)
+                    var transactionsToUpdate = _unitOfWork.Repository<TransactionEntity>().Include(x => x.FromAccount, x => x.ToAccount).Where(x => block.Transactions.Select(y => y.Id).Contains(x.Id));
+                    foreach (var tx in transactionsToUpdate)
                     {
                         tx.State = TransactionStatus.Accepted.ToString();
+                        tx.FromAccount.Balance -= tx.Money;
+                        tx.ToAccount.Balance += tx.Money;
                     }
+                    _unitOfWork.SaveChanges();
                 }
             }
         }

@@ -13,7 +13,8 @@ namespace Starter.DAL.Configurations
         {
             builder.ToTable("Blocks");
 
-            builder.HasKey(x => x.Hash);
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Hash).IsRequired();
             builder.Property(x => x.BlockState).IsRequired();
             builder.Property(x => x.Date);
             builder.Property(x => x.Nonce);

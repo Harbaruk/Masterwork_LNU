@@ -25,11 +25,7 @@ namespace Starter.API.BackgroundJobs
             {
                 Task.Factory.StartNew(() =>
                 {
-                    while (true)
-                    {
-                        job.Start();
-                        Thread.Sleep(1000);
-                    }
+                    job.Start();
                 });
             }
         }

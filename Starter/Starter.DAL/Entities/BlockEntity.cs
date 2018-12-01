@@ -5,6 +5,8 @@ namespace Starter.DAL.Entities
 {
     public class BlockEntity
     {
+        public int Id { get; set; }
+
         public string Hash { get; set; }
 
         public DateTimeOffset Date { get; set; }
@@ -15,7 +17,7 @@ namespace Starter.DAL.Entities
 
         public string BlockState { get; set; }
 
-        public UserEntity Miner { get; set; }
+        public TrustfullServerEntity Miner { get; set; }
 
         public string PreviousBlockHash { get; set; }
 

@@ -69,7 +69,7 @@ namespace Starter.Services.BankAccount
                 .Include(x => x.TwoFactorAuth)
                 .FirstOrDefault(x => x.Id == _user.Id);
 
-            if (!_totpProvider.Verify(user.TwoFactorAuth.Secret, account.Code))
+            if (!_totpProvider.Verify(user.TwoFactorAuth?.Secret, account.Code))
             {
                 _taskStatus.AddUnkeyedError("invalid code");
                 return null;

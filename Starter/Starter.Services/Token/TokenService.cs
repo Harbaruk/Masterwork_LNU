@@ -94,24 +94,25 @@ namespace Starter.Services.Token
         {
             var user = _unitOfWork.Repository<UserEntity>()
                 .Include(x => x.Tokens)
-                .FirstOrDefault(x => x.Email == loginCredentials.Email
-                || (x.Email == null && x.Role == UserRoles.Server.ToString()));
+                .FirstOrDefault(x => x.Email == loginCredentials.Email);
+
+            var server = _unitOfWork.Repository<TrustfullServerEntity>()
+                .Set
+                .FirstOrDefault(x => x.PublicKey == loginCredentials.Email);
 
             if (user == null)
             {
                 _taskStatus.AddError("credentials", "Invalid credentials");
                 return null;
             }
-
             if (_cryptoContext.ArePasswordsEqual(loginCredentials.Password, user.Password, user.Salt))
             {
-                if (user.Role == UserRoles.Server.ToString() || user.Role == UserRoles.Test.ToString())
+                if (user.Role == UserRoles.Test.ToString())
                 {
                     return BuildToken(user, TokenType.Access);
                 }
                 return BuildToken(user, TokenType.TOTP);
             }
-
             _taskStatus.AddError("password", "Invalid password");
             return null;
         }

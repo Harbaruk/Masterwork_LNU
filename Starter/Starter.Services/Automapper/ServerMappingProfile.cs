@@ -22,8 +22,10 @@ namespace Starter.Services.Automapper
                 .ForMember(x => x.Status, opt => opt.MapFrom(x => Enum.Parse<TransactionStatus>(x.State)))
                 .ForMember(x => x.BlockId, opt => opt.MapFrom(x => x.Block == null ? null : x.Block.Hash));
 
-            CreateMap<BlockEntity, BlockModel>()
-                .ForMember(x => x.Id, opt => opt.MapFrom(x => x.Hash));
+            CreateMap<BlockEntity, BlockModel>();
+
+            CreateMap<BlockEntity, UnverifiedBlockModel>()
+                .ForMember(x => x.PrevHash, opt => opt.MapFrom(x => x.PreviousBlockHash));
         }
     }
 }
