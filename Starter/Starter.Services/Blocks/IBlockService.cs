@@ -9,7 +9,7 @@ namespace Starter.Services.Blocks
     {
         BlockModel CreateBlock(CreateBlockModel model);
         IEnumerable<BlockModel> GetBlocks(int take, int skip);
-        void VerifyBlock(string blockId);
+        void VerifyBlock(string blockId, string serverHash);
         UnverifiedBlockModel GetUnverifiedBlock();
         BlockModel GetLastBlock();
         void SaveVerifiedBlock(UnverifiedBlockModel model);

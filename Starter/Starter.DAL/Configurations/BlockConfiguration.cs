@@ -14,13 +14,13 @@ namespace Starter.DAL.Configurations
             builder.ToTable("Blocks");
 
             builder.HasKey(x => x.Id);
-            builder.Property(x => x.Hash).IsRequired();
+            builder.Property(x => x.BlockHash).IsRequired();
             builder.Property(x => x.BlockState).IsRequired();
             builder.Property(x => x.Date);
             builder.Property(x => x.Nonce);
             builder.Property(x => x.PreviousBlockHash).IsRequired();
 
-            builder.HasOne(x => x.Miner);
+            builder.HasOne(x => x.Miner).WithMany(x => x.Blocks);
             builder.HasMany(x => x.Transactions).WithOne(x => x.Block);
             builder.HasMany(x => x.Verifications).WithOne(x => x.Block);
         }

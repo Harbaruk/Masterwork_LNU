@@ -34,14 +34,6 @@ namespace Starter.API.Controllers
             return Ok(_blockService.GetUnverifiedBlock());
         }
 
-        [HttpPost]
-        [Route("verify")]
-        public IActionResult Verify([FromBody] string block)
-        {
-            _blockService.VerifyBlock(block);
-            return Ok();
-        }
-
         [HttpGet]
         [Route("last_verified")]
         [ProducesResponseType(typeof(BlockModel), 200)]

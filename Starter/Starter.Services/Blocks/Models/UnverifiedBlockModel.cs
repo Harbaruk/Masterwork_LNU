@@ -8,7 +8,7 @@ namespace Starter.Services.Blocks.Models
     public class UnverifiedBlockModel
     {
         public int Id { get; set; }
-        public string Hash { get; set; }
+        public string BlockHash { get; set; }
         public string PrevHash { get; set; }
         public List<TransactionDetailedModel> Transactions { get; set; }
         public string Miner { get; set; }

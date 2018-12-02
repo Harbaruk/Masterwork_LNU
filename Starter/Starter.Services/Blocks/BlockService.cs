@@ -40,7 +40,7 @@ namespace Starter.Services.Blocks
         {
             var blocRepo = _unitOfWork.Repository<BlockEntity>();
 
-            var prevBlock = blocRepo.Set.FirstOrDefault(x => x.Hash == model.PrevBlockHash);
+            var prevBlock = blocRepo.Set.FirstOrDefault(x => x.BlockHash == model.PrevBlockHash);
 
             if (prevBlock == null && blocRepo.Set.Count() != 0)
             {
@@ -71,19 +71,23 @@ namespace Starter.Services.Blocks
             {
                 BlockState = BlockStatus.Pending.ToString(),
                 Date = DateTimeOffset.Now,
-                Hash = model.Hash,
+                BlockHash = model.Hash,
                 Miner = miner,
                 Nonce = model.Nonce,
                 PreviousBlockHash = model.PrevBlockHash,
                 Transactions = transactions.ToList(),
             };
 
+            foreach (var tx in blockEntity.Transactions)
+            {
+                tx.State = TransactionStatus.Processing.ToString();
+            }
             blocRepo.Insert(blockEntity);
             _unitOfWork.SaveChanges();
 
             return new BlockModel
             {
-                Hash = blockEntity.Hash,
+                Hash = blockEntity.BlockHash,
                 Date = blockEntity.Date,
                 Miner = miner.PublicKey.ToString()
             };
@@ -96,7 +100,7 @@ namespace Starter.Services.Blocks
                 .Select(x => new BlockModel
                 {
                     Date = x.Date,
-                    Hash = x.Hash,
+                    Hash = x.BlockHash,
                     Miner = x.Miner.PublicKey.ToString()
                 })
                 .Skip(skip)
@@ -116,9 +120,21 @@ namespace Starter.Services.Blocks
 
         public UnverifiedBlockModel GetUnverifiedBlock()
         {
-            return _mapper.Map<UnverifiedBlockModel>(_unitOfWork.Repository<BlockEntity>()
-                .Set
+            var txRepo = _unitOfWork.Repository<TransactionEntity>().Include(x => x.FromAccount, x => x.ToAccount, x => x.Initiator);
+            var block = _mapper.Map<UnverifiedBlockModel>(_unitOfWork.Repository<BlockEntity>()
+                .Include(x => x.Transactions)
                 .FirstOrDefault(x => x.BlockState == BlockStatus.Pending.ToString()));
+            if (block == null)
+            {
+                return null;
+            }
+            var updatedTx = new List<TransactionDetailedModel>();
+            foreach (var t in block.Transactions)
+            {
+                updatedTx.Add(_mapper.Map<TransactionDetailedModel>(txRepo.FirstOrDefault(x => x.Id == t.Id)));
+            }
+            block.Transactions = updatedTx.OrderBy(x => x.SentTime).ToList();
+            return block;
         }
 
         public void SaveVerifiedBlock(UnverifiedBlockModel model)
@@ -137,23 +153,17 @@ namespace Starter.Services.Blocks
             _unitOfWork.SaveChanges();
         }
 
-        public void VerifyBlock(string blockId)
+        public void VerifyBlock(string blockId, string serverHash)
         {
-            if (_authenticatedUser.Role != UserRoles.Server)
-            {
-                _taskStatus.AddUnkeyedError("not allowed");
-                return;
-            }
-
-            var block = _unitOfWork.Repository<BlockEntity>().Include(x => x.Verifications, x => x.Transactions).FirstOrDefault(x => x.Hash == blockId);
-            var isAlreadyVerify = block.Verifications.Any(x => x.UserPublicKey == _authenticatedUser.ServerHash);
+            var block = _unitOfWork.Repository<BlockEntity>().Include(x => x.Verifications, x => x.Transactions).FirstOrDefault(x => x.BlockHash == blockId);
+            var isAlreadyVerify = block.Verifications.Any(x => x.UserPublicKey == serverHash);
 
             if (!isAlreadyVerify)
             {
                 var verification = new BlockVerificationEntity
                 {
                     Block = block,
-                    UserPublicKey = _authenticatedUser.ServerHash
+                    UserPublicKey = serverHash
                 };
 
                 _unitOfWork.Repository<BlockVerificationEntity>().Insert(verification);

@@ -17,6 +17,7 @@ namespace Starter.Services.Mining.ServersClient
         private readonly TrustfullServersOptions _serversOptions;
         private readonly ITokenService _tokenService;
         private readonly HttpClient _httpClient;
+        private string _token = null;
         private string _serverHash = "8f00234b-dabb-4765-b616-841d5b92a9a0";
 
         public ServersClient(IOptions<TrustfullServersOptions> serversOptions, ITokenService tokenService)
@@ -24,15 +25,15 @@ namespace Starter.Services.Mining.ServersClient
             _serversOptions = serversOptions.Value;
             _tokenService = tokenService;
             _httpClient = new HttpClient();
+            _token = GetToken();
         }
 
-        public CreateBlockModel GetUnverifiedBlock()
+        public UnverifiedBlockModel GetUnverifiedBlock()
         {
-            var token = GetToken();
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", _token);
             foreach (var server in _serversOptions.IPAdressess)
             {
-                var block = JsonConvert.DeserializeObject<CreateBlockModel>(_httpClient.GetAsync($"{server}/blocks/unverified").Result.Content.ReadAsStringAsync().Result);
+                var block = JsonConvert.DeserializeObject<UnverifiedBlockModel>(_httpClient.GetAsync($"{server}/blocks/unverified").Result.Content.ReadAsStringAsync().Result);
                 if (block != null)
                 {
                     return block;
@@ -48,8 +49,7 @@ namespace Starter.Services.Mining.ServersClient
 
         public int GetUnverifiedTransactionCount()
         {
-            var token = GetToken();
-            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", _token);
             var count = 0;
             foreach (var server in _serversOptions.IPAdressess)
             {
@@ -65,11 +65,9 @@ namespace Starter.Services.Mining.ServersClient
 
         public void VerifyBlock(string block)
         {
-            var token = GetToken();
-
             foreach (var server in _serversOptions.IPAdressess)
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", _token);
                 _httpClient.PostAsync($"{server}/blocks/verify", new StringContent(JsonConvert.SerializeObject(block)));
             }
         }
@@ -77,11 +75,10 @@ namespace Starter.Services.Mining.ServersClient
         public IEnumerable<TransactionDetailedModel> GetUnverifiedTransactions()
         {
             Console.WriteLine("Get unverified tx");
-            var token = GetToken();
             var result = new List<TransactionDetailedModel>();
             foreach (var server in _serversOptions.IPAdressess)
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", _token);
                 result.AddRange(JsonConvert.DeserializeObject<IEnumerable<TransactionDetailedModel>>(_httpClient.GetAsync($"{server}/transactions/unverified").Result.Content.ReadAsStringAsync().Result));
             }
             return result;
@@ -89,10 +86,9 @@ namespace Starter.Services.Mining.ServersClient
 
         public string GetLastBlock()
         {
-            var token = GetToken();
             foreach (var server in _serversOptions.IPAdressess)
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", token);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("bearer", _token);
                 var block = JsonConvert.DeserializeObject<BlockModel>(_httpClient.GetAsync($"{server}/block/last_verified").Result.Content.ReadAsStringAsync().Result);
                 if (block != null)
                 {

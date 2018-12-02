@@ -10,5 +10,6 @@ namespace Starter.DAL.Entities
         public string PublicKey { get; set; }
         public string Salt { get; set; }
         public string Password { get; set; }
+        public IEnumerable<BlockEntity> Blocks { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace Starter.DAL.Entities
     {
         public int Id { get; set; }
 
-        public string Hash { get; set; }
+        public string BlockHash { get; set; }
 
         public DateTimeOffset Date { get; set; }
 

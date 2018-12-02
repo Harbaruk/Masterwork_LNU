@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -9,7 +10,7 @@ namespace Starter.DAL.Infrastructure
     {
         private readonly ProjectDbContext _dbContext;
         private bool _disposed;
-        private Dictionary<string, object> _repositories;
+        private ConcurrentDictionary<string, object> _repositories;
 
         public EFUnitOfWork(ProjectDbContext dbContext)
         {
@@ -21,7 +22,7 @@ namespace Starter.DAL.Infrastructure
         {
             if (_repositories == null)
             {
-                _repositories = new Dictionary<string, object>();
+                _repositories = new ConcurrentDictionary<string, object>();
             }
 
             var type = typeof(T).Name;
@@ -30,7 +31,7 @@ namespace Starter.DAL.Infrastructure
             {
                 var repositoryType = typeof(EFRepository<>);
                 var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _dbContext);
-                _repositories.Add(type, repositoryInstance);
+                _repositories.TryAdd(type, repositoryInstance);
             }
             return (EFRepository<T>)_repositories[type];
         }

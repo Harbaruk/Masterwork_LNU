@@ -16,7 +16,14 @@ namespace Starter.DAL.Infrastructure
         public EFRepository(ProjectDbContext dbContext)
         {
             _dbContext = dbContext;
-            _entities = _dbContext.Set<T>();
+            try
+            {
+                _entities = dbContext.Set<T>();
+            }
+            finally
+            {
+                _entities = dbContext.Set<T>();
+            }
         }
 
         public IQueryable<T> Set { get { return _entities; } }

@@ -9,7 +9,7 @@ namespace Starter.Services.Mining.ServersClient
     public interface IServersClient
     {
         int GetUnverifiedTransactionCount();
-        CreateBlockModel GetUnverifiedBlock();
+        UnverifiedBlockModel GetUnverifiedBlock();
         string GetLastBlock();
         void VerifyBlock(string blockId);
         IEnumerable<TransactionDetailedModel> GetUnverifiedTransactions();

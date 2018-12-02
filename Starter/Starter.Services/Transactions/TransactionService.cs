@@ -106,7 +106,7 @@ namespace Starter.Services.Transactions
         public IEnumerable<TransactionDetailedModel> GetUnverifiedTransactions(int number = 0)
         {
             return _unitOfWork.Repository<TransactionEntity>()
-                .Include(x => x.Block)
+                .Include(x => x.Block, x => x.FromAccount, x => x.ToAccount)
                 .Where(x => x.State == TransactionStatus.Pending.ToString())
                 .Take(number == 0 ? _blockOptions.Value.BlockSize : number)
                 .Select(x => _mapper.Map<TransactionDetailedModel>(x));

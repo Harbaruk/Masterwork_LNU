@@ -19,12 +19,13 @@ namespace Starter.API.BackgroundJobs
             _jobs.Enqueue(job);
         }
 
-        public void Run()
+        public void Run(int delay = 0)
         {
             foreach (var job in _jobs)
             {
                 Task.Factory.StartNew(() =>
                 {
+                    Thread.Sleep(delay);
                     job.Start();
                 });
             }
